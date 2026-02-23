@@ -8,7 +8,21 @@ import os
 import re
 import logging
 from collections import deque
-from kivy.clock import Clock
+
+# Try to import Kivy, fallback for testing
+try:
+    from kivy.clock import Clock
+    HAS_KIVY = True
+except ImportError:
+    HAS_KIVY = False
+    import time
+    
+    class MockClock:
+        @staticmethod
+        def get_time():
+            return time.time()
+    
+    Clock = MockClock()
 
 logger = logging.getLogger(__name__)
 

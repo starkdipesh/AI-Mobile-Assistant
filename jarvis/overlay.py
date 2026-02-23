@@ -2,22 +2,66 @@
 Jarvis Gaming Assistant - Floating Overlay UI
 Phase 5: Draggable floating window with live game stats
 """
-from kivy.app import App
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.popup import Popup
-from kivy.uix.slider import Slider
-from kivy.uix.scrollview import ScrollView
-from kivy.core.window import Window
-from kivy.graphics import Color, Rectangle, RoundedRectangle
-from kivy.properties import BooleanProperty, NumericProperty, StringProperty
-from kivy.animation import Animation
-from kivy.clock import Clock
-from kivy.utils import platform
+# Try to import Kivy, use mock classes if not available
+try:
+    from kivy.app import App
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.label import Label
+    from kivy.uix.button import Button
+    from kivy.uix.togglebutton import ToggleButton
+    from kivy.uix.popup import Popup
+    from kivy.uix.slider import Slider
+    from kivy.uix.scrollview import ScrollView
+    from kivy.core.window import Window
+    from kivy.graphics import Color, Rectangle, RoundedRectangle
+    from kivy.properties import BooleanProperty, NumericProperty, StringProperty
+    from kivy.animation import Animation
+    from kivy.clock import Clock
+    from kivy.utils import platform
+    HAS_KIVY = True
+except ImportError:
+    HAS_KIVY = False
+    # Create mock classes for testing
+    class MockWidget:
+        pass
+    class FloatLayout(MockWidget): pass
+    class BoxLayout(MockWidget): pass
+    class GridLayout(MockWidget): pass
+    class Label(MockWidget): pass
+    class Button(MockWidget): pass
+    class ToggleButton(MockWidget): pass
+    class Popup(MockWidget): pass
+    class Slider(MockWidget): pass
+    class ScrollView(MockWidget): pass
+    class Window: pass
+    class Color: pass
+    class Rectangle: pass
+    class RoundedRectangle: pass
+    class BooleanProperty:
+        def __init__(self, *args, **kwargs): pass
+    class NumericProperty:
+        def __init__(self, *args, **kwargs): pass
+    class StringProperty:
+        def __init__(self, *args, **kwargs): pass
+    class Animation:
+        @staticmethod
+        def start(x): pass
+    class Clock:
+        @staticmethod
+        def schedule_interval(callback, interval): pass
+        @staticmethod
+        def get_time():
+            import time
+            return time.time()
+    class App:
+        @staticmethod
+        def get_running_app():
+            return None
+    class platform:
+        pass
+
 import logging
 
 logger = logging.getLogger(__name__)

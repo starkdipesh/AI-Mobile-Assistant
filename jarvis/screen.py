@@ -8,7 +8,26 @@ import time
 import threading
 import subprocess
 import numpy as np
-from kivy.clock import Clock
+
+# Try to import Kivy, fallback for testing
+try:
+    from kivy.clock import Clock
+    HAS_KIVY = True
+except ImportError:
+    HAS_KIVY = False
+    import threading
+    
+    class MockClock:
+        @staticmethod
+        def schedule_once(callback, timeout):
+            if timeout <= 0:
+                callback(0)
+            else:
+                timer = threading.Timer(timeout, callback, args=[0])
+                timer.start()
+    
+    Clock = MockClock()
+
 import logging
 
 logger = logging.getLogger(__name__)

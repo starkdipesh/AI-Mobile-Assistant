@@ -5,8 +5,38 @@ Phase 1: Wake Word + STT + TTS
 import threading
 import queue
 import numpy as np
-from kivy.clock import Clock
 import logging
+import time
+
+# Try to import Kivy, fallback to threading if not available
+try:
+    from kivy.clock import Clock
+    HAS_KIVY = True
+except ImportError:
+    HAS_KIVY = False
+    # Simple Clock fallback for testing
+    class MockClock:
+        @staticmethod
+        def schedule_once(callback, timeout):
+            timer = threading.Timer(timeout, callback, args=[0])
+            timer.start()
+            return timer
+        
+        @staticmethod
+        def schedule_interval(callback, interval):
+            def loop():
+                while True:
+                    callback(0)
+                    time.sleep(interval)
+            t = threading.Thread(target=loop, daemon=True)
+            t.start()
+            return t
+        
+        @staticmethod
+        def get_time():
+            return time.time()
+    
+    Clock = MockClock()
 
 logger = logging.getLogger(__name__)
 
