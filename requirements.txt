@@ -1,0 +1,30 @@
+# Sarth Gaming Assistant - Desktop Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core Application Framework
+kivy==2.3.0
+
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Desktop Screen Capture
+mss>=9.0.0
+
+# Desktop Voice (TTS + STT)
+pyttsx3>=2.90
+SpeechRecognition>=3.10.0
+PyAudio>=0.2.11
+
+# Wake Word Detection
+pvporcupine>=2.2.0
+
+# OCR for Game Text Recognition
+pytesseract>=0.3.10
+
+# Development & Testing
+pytest>=7.4.0
+
+# Logging & Utilities
+structlog>=23.0.0

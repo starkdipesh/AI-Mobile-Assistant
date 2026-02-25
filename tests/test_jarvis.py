@@ -1,5 +1,5 @@
 """
-Jarvis Gaming Assistant - Test Suite
+Sarth Gaming Assistant - Test Suite
 Comprehensive testing for voice, screen, and analysis modules
 """
 import os
@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 # Add parent to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from jarvis.voice import VoiceEngine, MockTTS, MockSTT
-from jarvis.brain import GameAnalyzer, CommandProcessor
-from jarvis.screen import MockScreenCapture
+from sarth.voice import VoiceEngine, MockTTS, MockSTT
+from sarth.brain import GameAnalyzer, CommandProcessor
+from sarth.screen import MockScreenCapture
 
 
 class TestVoicePipeline(unittest.TestCase):
@@ -504,8 +504,8 @@ def run_interactive_test():
     logger.info("Commands: health, enemies, ammo, zone, status, quit")
     logger.info("-"*70)
     
-    from jarvis.brain import CommandProcessor
-    from jarvis.voice import VoiceEngine
+    from sarth.brain import CommandProcessor
+    from sarth.voice import VoiceEngine
     
     # Setup
     voice = VoiceEngine()
@@ -539,7 +539,7 @@ def run_interactive_test():
 if __name__ == '__main__':
     import argparse
     
-    parser = argparse.ArgumentParser(description='Jarvis Test Suite')
+    parser = argparse.ArgumentParser(description='Sarth Test Suite')
     parser.add_argument('--interactive', '-i', action='store_true', help='Run interactive test')
     parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     

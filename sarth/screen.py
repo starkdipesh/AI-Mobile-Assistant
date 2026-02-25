@@ -1,6 +1,7 @@
 """
-Jarvis Gaming Assistant - Screen Capture Module
-Phase 2: Screen Capture using minicap + android_screen_buffer
+Sarth Gaming Assistant - Screen Capture Module
+Supports both Android (minicap/screencap) and Desktop (mss)
+Auto-detects platform and uses appropriate implementation
 """
 import os
 import sys
@@ -9,12 +10,14 @@ import threading
 import subprocess
 import numpy as np
 
-# Try to import Kivy, fallback for testing
+# Try to import Kivy for platform detection
 try:
     from kivy.clock import Clock
+    from kivy.utils import platform
     HAS_KIVY = True
 except ImportError:
     HAS_KIVY = False
+    platform = 'unknown'
     import threading
     
     class MockClock:
@@ -32,8 +35,180 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Platform detection
+IS_ANDROID = platform == 'android' if HAS_KIVY else False
+IS_DESKTOP = not IS_ANDROID
 
-class ScreenCapture:
+logger.info(f"Platform detected: {'Android' if IS_ANDROID else 'Desktop'}")
+
+
+class SarthScreenCapture:
+    """
+    Unified screen capture - auto-detects platform and uses best available method
+    Android: minicap → screencap → android_screen_buffer
+    Desktop: mss library
+    """
+    
+    def __init__(self, fps=15, monitor=1, resolution=(1080, 2340)):
+        self.fps = fps
+        self.monitor = monitor
+        self.resolution = resolution
+        self.backend = None
+        self._init_backend()
+    
+    def _init_backend(self):
+        """Initialize the best screen capture backend for current platform"""
+        if IS_ANDROID:
+            logger.info("Initializing Android screen capture backend")
+            self.backend = AndroidScreenCapture(self.fps, self.resolution)
+        else:
+            logger.info("Initializing Desktop screen capture backend (mss)")
+            self.backend = DesktopScreenCapture(self.fps, self.monitor)
+    
+    def start(self):
+        """Start screen capture"""
+        if self.backend:
+            self.backend.start()
+    
+    def stop(self):
+        """Stop screen capture"""
+        if self.backend:
+            self.backend.stop()
+    
+    def get_last_frame(self):
+        """Get most recent frame"""
+        if self.backend:
+            return self.backend.get_last_frame()
+        return None
+    
+    def register_callback(self, callback):
+        """Register frame callback"""
+        if self.backend:
+            self.backend.register_callback(callback)
+    
+    def unregister_callback(self, callback):
+        """Unregister frame callback"""
+        if self.backend:
+            self.backend.unregister_callback(callback)
+
+
+# Keep aliases for backward compatibility
+ScreenCapture = SarthScreenCapture
+
+
+class DesktopScreenCapture:
+    """
+    Desktop screen capture using mss library
+    Works on Windows, macOS, and Linux
+    """
+    
+    def __init__(self, fps=15, monitor=1):
+        self.fps = fps
+        self.frame_interval = 1.0 / fps
+        self.monitor = monitor
+        self.running = False
+        self.capture_thread = None
+        self.current_frame = None
+        self.frame_lock = threading.Lock()
+        self.frame_callbacks = []
+        self.mss = None
+        self.monitors = []
+        
+        self._init_capture()
+    
+    def _init_capture(self):
+        """Initialize mss screen capture"""
+        try:
+            import mss
+            self.mss = mss.mss()
+            self.monitors = self.mss.monitors
+            
+            if len(self.monitors) > self.monitor:
+                mon = self.monitors[self.monitor]
+                logger.info(f"Desktop capture: {mon['width']}x{mon['height']} @ {self.fps} FPS")
+            else:
+                logger.warning(f"Monitor {self.monitor} not found, using primary")
+                self.monitor = 1
+        except ImportError:
+            logger.error("mss not installed. Run: pip install mss")
+            self.mss = None
+    
+    def start(self):
+        """Start screen capture"""
+        if self.running or not self.mss:
+            logger.warning("Cannot start capture - mss not available or already running")
+            return
+        
+        self.running = True
+        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.capture_thread.start()
+        logger.info(f"Desktop capture started at {self.fps} FPS")
+    
+    def stop(self):
+        """Stop screen capture"""
+        self.running = False
+        if self.capture_thread:
+            self.capture_thread.join(timeout=2)
+        if self.mss:
+            self.mss.close()
+            self.mss = None
+        logger.info("Desktop capture stopped")
+    
+    def _capture_loop(self):
+        """Main capture loop"""
+        last_capture = time.time()
+        
+        while self.running:
+            try:
+                current_time = time.time()
+                elapsed = current_time - last_capture
+                
+                if elapsed >= self.frame_interval:
+                    if self.monitor < len(self.monitors):
+                        monitor = self.monitors[self.monitor]
+                        screenshot = self.mss.grab(monitor)
+                        frame = np.array(screenshot)
+                        
+                        # Convert BGRA to BGR
+                        if len(frame.shape) == 3 and frame.shape[2] == 4:
+                            frame = frame[:, :, :3]
+                        
+                        with self.frame_lock:
+                            self.current_frame = frame
+                        
+                        Clock.schedule_once(
+                            lambda dt, f=frame: self._notify_callbacks(f), 0
+                        )
+                    
+                    last_capture = current_time
+                else:
+                    time.sleep(0.001)
+            except Exception as e:
+                logger.error(f"Capture error: {e}")
+                time.sleep(0.1)
+    
+    def get_last_frame(self):
+        """Get most recent frame"""
+        with self.frame_lock:
+            return self.current_frame.copy() if self.current_frame is not None else None
+    
+    def register_callback(self, callback):
+        if callback not in self.frame_callbacks:
+            self.frame_callbacks.append(callback)
+    
+    def unregister_callback(self, callback):
+        if callback in self.frame_callbacks:
+            self.frame_callbacks.remove(callback)
+    
+    def _notify_callbacks(self, frame):
+        for callback in self.frame_callbacks:
+            try:
+                callback(frame)
+            except Exception as e:
+                logger.error(f"Callback error: {e}")
+
+
+class AndroidScreenCapture:
     """
     Screen capture using minicap binary for high-performance frame capture
     at 15 FPS for game analysis
@@ -333,7 +508,11 @@ class ScreenCapture:
             return None
     
     def _capture_screencap(self):
-        """Fallback using Android screencap command"""
+        """Fallback using Android screencap command - only works on Android"""
+        # Skip on desktop platforms
+        if not HAS_KIVY or platform != 'android':
+            return None
+            
         try:
             result = subprocess.run(
                 ['screencap', '-p'],
@@ -358,7 +537,10 @@ class ScreenCapture:
                 return frame
             
         except Exception as e:
-            logger.error(f"Screencap failed: {e}")
+            # Only log once per session to avoid spam
+            if not hasattr(self, '_screencap_error_logged'):
+                logger.debug(f"Screencap not available (expected on desktop): {e}")
+                self._screencap_error_logged = True
         
         return None
     

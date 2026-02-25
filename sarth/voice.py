@@ -1,5 +1,5 @@
 """
-Jarvis Gaming Assistant - Voice Pipeline
+Sarth Gaming Assistant - Voice Pipeline
 Phase 1: Wake Word + STT + TTS
 """
 import threading
@@ -79,14 +79,19 @@ class VoiceEngine:
             logger.error(f"Voice engine initialization failed: {e}")
     
     def _init_tts(self):
-        """Initialize Text-to-Speech with offline voice"""
+        """Initialize Text-to-Speech - Android first, then Desktop fallback"""
         try:
             from pykivdroid import TTS
             self.tts = TTS(voice='en-us-x-tpd-local')
-            logger.info("TTS initialized")
+            logger.info("Android TTS initialized")
         except ImportError:
-            logger.warning("pykivdroid not available, using mock TTS")
-            self.tts = MockTTS()
+            logger.info("pykivdroid not available, trying DesktopTTS")
+            try:
+                self.tts = DesktopTTS()
+                logger.info("Desktop TTS initialized (pyttsx3)")
+            except Exception as e:
+                logger.warning(f"Desktop TTS failed: {e}, using MockTTS")
+                self.tts = MockTTS()
     
     def _init_stt(self):
         """Initialize Speech-to-Text (offline preferred)"""
@@ -179,7 +184,7 @@ class VoiceEngine:
             logger.error(f"Wake word loop error: {e}")
     
     def _on_wake_detected(self):
-        """Called when wake word 'Jarvis' is detected"""
+        """Called when wake word 'Sarth' is detected"""
         logger.info("Wake word detected!")
         self.speak("Yes boss?", priority='high')
         self._start_stt_listening()
@@ -281,6 +286,57 @@ class MockTTS:
     """Mock TTS for testing on non-Android platforms"""
     def speak(self, text):
         logger.info(f"[MOCK TTS]: {text}")
+
+
+class DesktopTTS:
+    """Desktop TTS using pyttsx3 - works on Windows, macOS, Linux"""
+    
+    def __init__(self):
+        self.engine = None
+        self._init_engine()
+    
+    def _init_engine(self):
+        try:
+            import pyttsx3
+            self.engine = pyttsx3.init()
+            # Configure voice properties
+            self.engine.setProperty('rate', 150)  # Speech rate
+            self.engine.setProperty('volume', 0.9)  # Volume 0-1
+            
+            # Try to set a male voice (Jarvis/Sarth style)
+            voices = self.engine.getProperty('voices')
+            for voice in voices:
+                if 'male' in voice.name.lower() or 'david' in voice.name.lower():
+                    self.engine.setProperty('voice', voice.id)
+                    break
+            
+            logger.info("Desktop TTS initialized (pyttsx3)")
+        except ImportError:
+            logger.error("pyttsx3 not installed. Run: pip install pyttsx3")
+            self.engine = None
+        except Exception as e:
+            logger.error(f"Desktop TTS init failed: {e}")
+            self.engine = None
+    
+    def speak(self, text):
+        """Speak text using desktop TTS"""
+        if self.engine:
+            try:
+                self.engine.say(text)
+                self.engine.runAndWait()
+                logger.info(f"[Desktop TTS]: {text}")
+            except Exception as e:
+                logger.error(f"Desktop TTS speak error: {e}")
+        else:
+            logger.warning(f"[MOCK TTS]: {text}")
+    
+    def stop(self):
+        """Stop current speech"""
+        if self.engine:
+            try:
+                self.engine.stop()
+            except:
+                pass
 
 
 class MockSTT:

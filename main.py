@@ -1,5 +1,5 @@
 """
-Jarvis Gaming Assistant - Main Application
+Sarth Gaming Assistant - Main Application
 Kivy App entry point integrating all modules
 """
 import os
@@ -23,18 +23,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Ensure jarvis modules are in path
+# Ensure sarth modules are in path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from jarvis.voice import VoiceEngine, MockSTT
-from jarvis.screen import ScreenCapture, MockScreenCapture
-from jarvis.brain import GameAnalyzer, CommandProcessor
-from jarvis.overlay import JarvisOverlay
+from sarth.voice import VoiceEngine, MockSTT
+from sarth.screen import SarthScreenCapture, MockScreenCapture
+from sarth.brain import GameAnalyzer, CommandProcessor
+from sarth.overlay import SarthOverlay
 
 
-class JarvisApp(App):
+class SarthApp(App):
     """
-    Main Jarvis Gaming Assistant Application
+    Main Sarth Gaming Assistant Application
     Integrates Voice, Screen Capture, Game Analysis, and Overlay UI
     """
     
@@ -80,7 +80,7 @@ class JarvisApp(App):
         
         # Info panel
         info = Label(
-            text='Voice: "Jarvis" wake word\nCommands: health, enemies, ammo, zone, status',
+            text='Voice: "Sarth" wake word\nCommands: health, enemies, ammo, zone, status',
             font_size=12,
             color=(0.6, 0.6, 0.6, 1),
             size_hint_y=0.15,
@@ -92,7 +92,7 @@ class JarvisApp(App):
         controls = BoxLayout(orientation='vertical', spacing=10, size_hint_y=0.4)
         
         self.start_btn = Button(
-            text='▶ START JARVIS',
+            text='▶ START SARTH',
             font_size=16,
             background_color=(0, 0.7, 0, 1),
             size_hint_y=0.25
@@ -100,7 +100,7 @@ class JarvisApp(App):
         self.start_btn.bind(on_press=self.start_service)
         
         self.stop_btn = Button(
-            text='⏹ STOP JARVIS',
+            text='⏹ STOP SARTH',
             font_size=16,
             background_color=(0.7, 0, 0, 1),
             disabled=True,
@@ -175,7 +175,7 @@ class JarvisApp(App):
             self.stop_btn.background_color = (0.3, 0.3, 0.3, 1)
     
     def _initialize_modules(self, dt):
-        """Initialize all Jarvis modules"""
+        """Initialize all Sarth modules"""
         try:
             self.status_text = "Initializing voice engine..."
             
@@ -184,13 +184,14 @@ class JarvisApp(App):
             
             self.status_text = "Initializing screen capture..."
             
-            # Initialize screen capture (Phase 2)
+            # Initialize screen capture (auto-detects platform)
             try:
-                self.screen_capture = ScreenCapture(fps=15, resolution=(1080, 2340))
+                self.screen_capture = SarthScreenCapture(fps=15, monitor=1, resolution=(1920, 1080))
                 self.screen_capture.register_callback(self._on_new_frame)
+                logger.info("Screen capture initialized (auto-detected platform)")
             except Exception as e:
                 logger.warning(f"Screen capture init failed: {e}, using mock")
-                self.screen_capture = MockScreenCapture(fps=15, resolution=(1080, 2340))
+                self.screen_capture = MockScreenCapture(fps=15, resolution=(1920, 1080))
             
             self.status_text = "Initializing game analyzer..."
             
@@ -201,14 +202,14 @@ class JarvisApp(App):
             # Initialize command processor (Phase 4)
             self.processor = CommandProcessor(self.analyzer, self.voice)
             
-            self.status_text = "Ready to start. Press START JARVIS."
+            self.status_text = "Ready to start. Press START SARTH."
             
         except Exception as e:
             logger.error(f"Module initialization failed: {e}")
             self.status_text = f"Init failed: {str(e)[:50]}"
     
     def start_service(self, instance):
-        """Start Jarvis services"""
+        """Start Sarth services"""
         if not self.voice or not self.analyzer:
             self._initialize_modules(0)
             return
@@ -228,7 +229,7 @@ class JarvisApp(App):
             self.status_text = "Launching overlay..."
             
             # Create overlay (Phase 5)
-            self.overlay = JarvisOverlay(
+            self.overlay = SarthOverlay(
                 voice_engine=self.voice,
                 analyzer=self.analyzer
             )
@@ -237,17 +238,17 @@ class JarvisApp(App):
             self.alert_check_event = Clock.schedule_interval(self._check_alerts, 2.0)
             
             self.service_running = True
-            self.status_text = "JARVIS IS ACTIVE - Say 'Jarvis health' to test"
+            self.status_text = "SARTH IS ACTIVE - Say 'Sarth health' to test"
             
             # Welcome message
-            Clock.schedule_once(lambda dt: self.voice.speak("Jarvis online. Ready to assist, boss!"), 1.0)
+            Clock.schedule_once(lambda dt: self.voice.speak("Sarth online. Ready to assist, boss!"), 1.0)
             
         except Exception as e:
             logger.error(f"Failed to start service: {e}")
             self.status_text = f"Start failed: {str(e)[:50]}"
     
     def stop_service(self, instance):
-        """Stop all Jarvis services"""
+        """Stop all Sarth services"""
         try:
             self.status_text = "Stopping services..."
             
@@ -265,7 +266,7 @@ class JarvisApp(App):
                 self.alert_check_event = None
             
             self.service_running = False
-            self.status_text = "Jarvis stopped. Ready to restart."
+            self.status_text = "Sarth stopped. Ready to restart."
             
         except Exception as e:
             logger.error(f"Error stopping service: {e}")
@@ -274,7 +275,7 @@ class JarvisApp(App):
     def test_voice(self, instance):
         """Test voice synthesis"""
         if self.voice:
-            self.voice.speak("Voice test successful. Jarvis is ready, boss!", priority='high')
+            self.voice.speak("Voice test successful. Sarth is ready, boss!", priority='high')
             self.status_text = "Voice test playing..."
         else:
             self.status_text = "Voice not initialized!"
@@ -323,11 +324,11 @@ class JarvisApp(App):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
         msg = Label(
-            text='Jarvis needs these permissions:\n\n'
+            text='Sarth needs these permissions:\n\n'
                  '• Microphone - Voice commands\n'
                  '• Overlay - Floating UI\n'
                  '• Storage - Screen capture\n\n'
-                 'Please enable in Settings > Apps > Jarvis',
+                 'Please enable in Settings > Apps > Sarth',
             halign='left',
             font_size=14
         )
@@ -347,10 +348,10 @@ class JarvisApp(App):
     def simulate_command(self, command):
         """Simulate a voice command for testing"""
         if not self.processor:
-            self.status_text = "Start Jarvis first!"
+            self.status_text = "Start Sarth first!"
             return
         
-        self._on_voice_command(f"jarvis {command}")
+        self._on_voice_command(f"sarth {command}")
         self.status_text = f"Simulated: '{command}'"
     
     def _on_voice_command(self, text):
@@ -401,7 +402,7 @@ def main():
             logger.warning(f"Android setup error: {e}")
     
     # Run app
-    JarvisApp().run()
+    SarthApp().run()
 
 
 if __name__ == '__main__':

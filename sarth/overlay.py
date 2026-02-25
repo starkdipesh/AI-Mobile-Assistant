@@ -1,5 +1,5 @@
 """
-Jarvis Gaming Assistant - Floating Overlay UI
+Sarth Gaming Assistant - Floating Overlay UI
 Phase 5: Draggable floating window with live game stats
 """
 # Try to import Kivy, use mock classes if not available
@@ -67,7 +67,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class JarvisOverlay(FloatLayout):
+class SarthOverlay(FloatLayout):
     """
     Floating overlay showing:
     - Status bar (draggable)
@@ -360,7 +360,7 @@ class JarvisOverlay(FloatLayout):
         content.add_widget(close_btn)
         
         popup = Popup(
-            title='Jarvis Settings',
+            title='Sarth Settings',
             content=content,
             size_hint=(0.8, 0.8),
             auto_dismiss=False
@@ -398,7 +398,7 @@ class JarvisOverlay(FloatLayout):
     def _close_overlay(self, instance):
         """Close the overlay"""
         if self.voice:
-            self.voice.speak("Jarvis shutting down. Good luck, boss!")
+            self.voice.speak("Sarth shutting down. Good luck, boss!")
         
         # Stop services
         App.get_running_app().stop()
@@ -524,7 +524,7 @@ class OverlayService:
                 
                 # Build notification
                 builder = NotificationBuilder(activity)
-                builder.setContentTitle("Jarvis Gaming Assistant")
+                builder.setContentTitle("Sarth Gaming Assistant")
                 builder.setContentText("Active and monitoring")
                 builder.setSmallIcon(activity.getApplicationInfo().icon)
                 
@@ -534,7 +534,7 @@ class OverlayService:
                 Service = autoclass('org.kivy.android.PythonService')
                 Service.startForeground(1, notification)
             
-            self.overlay = JarvisOverlay(voice_engine, analyzer)
+            self.overlay = SarthOverlay(voice_engine, analyzer)
             self.running = True
             
         except Exception as e:

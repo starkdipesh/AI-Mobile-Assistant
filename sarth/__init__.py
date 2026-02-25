@@ -1,10 +1,11 @@
 """
-Jarvis Gaming Assistant Package
+Sarth Gaming Assistant - Voice Pipeline
+Phase 1: Wake Word + STT + TTS
 """
 from .voice import VoiceEngine
 from .screen import ScreenCapture
 from .brain import GameAnalyzer, CommandProcessor
-from .overlay import JarvisOverlay, OverlayService
+from .overlay import SarthOverlay, OverlayService
 
 __version__ = '1.0.0'
 __all__ = [
@@ -12,6 +13,6 @@ __all__ = [
     'ScreenCapture',
     'GameAnalyzer',
     'CommandProcessor',
-    'JarvisOverlay',
+    'SarthOverlay',
     'OverlayService'
 ]

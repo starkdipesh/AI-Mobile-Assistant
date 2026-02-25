@@ -1,5 +1,5 @@
 """
-Jarvis Gaming Assistant - Game Analysis & Command Processing
+Sarth Gaming Assistant - Game Analysis & Command Processing
 Phase 3 & 4: Computer Vision + Command Logic
 """
 import cv2
@@ -498,7 +498,7 @@ class CommandProcessor:
         # Parse command
         text = text.lower().strip()
         
-        # Check for Jarvis prefix
+        # Check for Sarth prefix
         if not text.startswith('jarvis'):
             # Try to find command keyword anyway
             for keyword in self.commands:
@@ -507,7 +507,7 @@ class CommandProcessor:
                     return
             return
         
-        # Extract command after "Jarvis"
+        # Extract command after "Sarth"
         command_text = text.replace('jarvis', '').strip()
         
         if not command_text:
@@ -658,7 +658,7 @@ class CommandProcessor:
         """List available commands"""
         self.voice.speak(
             "Available commands: health, enemies, ammo, zone, status. "
-            "Just say Jarvis followed by the command, boss."
+            "Just say Sarth followed by the command, boss."
         )
     
     def check_auto_alerts(self):

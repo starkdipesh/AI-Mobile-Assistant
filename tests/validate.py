@@ -1,5 +1,5 @@
 """
-Quick validation script for Jarvis Gaming Assistant
+Quick validation script for Sarth Gaming Assistant
 Tests core functionality without full unittest framework
 """
 import sys
@@ -16,7 +16,7 @@ def test_voice_pipeline():
     print("="*60)
     
     try:
-        from jarvis.voice import VoiceEngine
+        from sarth.voice import VoiceEngine
         
         commands = []
         def on_cmd(cmd):
@@ -56,7 +56,7 @@ def test_screen_capture():
     print("="*60)
     
     try:
-        from jarvis.screen import MockScreenCapture
+        from sarth.screen import MockScreenCapture
         
         print("  Initializing MockScreenCapture...")
         capture = MockScreenCapture(fps=15, resolution=(1080, 2340))
@@ -98,7 +98,7 @@ def test_game_analyzer():
     print("="*60)
     
     try:
-        from jarvis.brain import GameAnalyzer
+        from sarth.brain import GameAnalyzer
         
         print("  Initializing GameAnalyzer...")
         analyzer = GameAnalyzer()
@@ -149,8 +149,8 @@ def test_command_processor():
     print("="*60)
     
     try:
-        from jarvis.brain import CommandProcessor, GameAnalyzer
-        from jarvis.voice import VoiceEngine
+        from sarth.brain import CommandProcessor, GameAnalyzer
+        from sarth.voice import VoiceEngine
         
         print("  Initializing components...")
         voice = VoiceEngine()
@@ -191,9 +191,9 @@ def test_integration():
     print("="*60)
     
     try:
-        from jarvis.voice import VoiceEngine
-        from jarvis.brain import GameAnalyzer, CommandProcessor
-        from jarvis.screen import MockScreenCapture
+        from sarth.voice import VoiceEngine
+        from sarth.brain import GameAnalyzer, CommandProcessor
+        from sarth.screen import MockScreenCapture
         
         print("  Initializing all modules...")
         
